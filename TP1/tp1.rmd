@@ -1,0 +1,124 @@
+---
+title: "SériesTemporellesTP1"
+author: "Lélio"
+date: "2024-01-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+## Exercice 1
+```{r}
+# Chargement du jeu de données
+ozone = read.table(file = "Dataset_ozone.txt", sep = ";", header = TRUE, dec = ",")
+```
+### Question 1
+```{r}
+# Attribution des variables réponse et explicatives
+Y = ozone$maxO3
+X = ozone$T12
+
+#Calcul des moyennes empiriques
+X_bar = mean(X)
+Y_bar = mean(Y)
+
+#Calcul de beta1 et beta0
+beta1_manuel <- sum((X - X_bar) * (Y - Y_bar)) / sum((X - X_bar)^2)
+beta0_manuel <- Y_bar - beta1_manuel * X_bar
+
+#Calcul du modèle de régression linéaire
+y = beta0_manuel + beta1_manuel*X
+plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", xlab = "Max03 : valeur maximale d'ozone par jour", ylab = "T12 : Température relevée à 12H")
+lines(X, y, col = 'red', lwd = 2)
+legend("topright", legend = "Droite de régression", col = "red", lwd = 2)
+```
+
+### Question 2
+En utilisant $lm$
+```{r}
+#Calcul de la régression linéaire à l'aide de la commande lm
+prediction = lm(Y ~ X, data = ozone)
+
+#On récupère les coefficients beta0 et beta1 contenus dans la liste que génère la commande lm
+beta0_lm = coef(prediction)[1]
+beta1_lm = coef(prediction)[2]
+
+#Calcul du modèle de régression linéaire avec les coefficients obtenus avec lm
+y_lm = beta0_lm + beta1_lm*X
+plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", xlab = "Max03 : valeur maximale d'ozone par jour", ylab = "T12 : Température relevée à 12H")
+lines(X, y_lm, col = 'green', lwd = 2)
+legend("topright", legend = "Droite de régression", col = "green", lwd = 2)
+
+
+```
+
+On obtient bien en effet les mêmes résultats en utilisant lm
+
+### Question 3
+Pour évaluer la qualité du modèle, on utilise la formule du cours qui permet de calculer $R^2$
+$$R^2 = \frac{||\hat{Y}-\overline{Y}_n||^2}{||Y-\overline{Y}_n||^2} = \frac{\sum(\hat{Y}_i-\overline{Y}_n)^2}{\sum(Y_i-\overline{Y}_n)^2}$$
+```{r}
+# Calcul des estimateurs
+beta_1barre = sum((X - X_bar) * (Y - Y_bar)) / sum((X - X_bar)^2)
+beta_0barre = Y_bar - beta_1barre*X_bar
+
+#Calcul de \hat{Y}
+hatY = beta_0barre + beta_1barre*X
+
+#Calcul du numérateur et dénominateur
+SSE = sum((hatY-Y_bar)^2)
+SST = sum((Y-Y_bar)^2)
+
+#Calcul de R2
+R2_manuel = SSE/SST
+cat("R2 : ", R2_manuel)
+```
+
+### Avec lm
+
+```{r}
+prediction = lm(Y~X, data = ozone)
+R2_lm = summary.lm(prediction)$r.squared
+cat("R2 : ", R2_lm)
+```
+$R^2$ calculé avec la formule du cours semble être plus précis qu'avec lm
+
+## Question 4
+```{r}
+n = length(Y)
+alpha = 0.05
+t = qt(1-alpha/2, n-2)
+sigma_2 = sum((Y-beta0_manuel - beta1_manuel*X)^2)/(n-2)
+sx_2 = (var(X))^2
+interv = t*sqrt(sigma_2) * sqrt(1+(1/n)+(X-mean(X))^2/(n*sx_2))
+borneInf = beta_0barre + beta_1barre*X - interv
+borneSup = beta_0barre + beta_1barre*X + interv
+plot(X,Y)
+curve(beta_0barre+beta_1barre*x -t*sqrt(sigma_2) * sqrt(1+(1/n)+(x-mean(X))^2/(n*sx_2)), from=min(X), to=max(X), col="red", add=TRUE)
+curve(beta_0barre+beta_1barre*x +t*sqrt(sigma_2) * sqrt(1+(1/n)+(x-mean(X))^2/(n*sx_2)), from=min(X), to=max(X), col="red", add=TRUE)
+
+```
+
+## Question 5
+
+
+## Question 6
+Hypothèse de bruit gaussien.
+$$Y_i = \beta_0 + \beta_1X_i + \varepsilon_i$$
+$$\hat{\varepsilon}_i= Y_i - \hat{Y}_i$$
+$\Longrightarrow$ résidus studentisés, vérifier qu'ils suivent une loi de Student ($n-3$ degrés de liberté)
+Rendre le rapport à la séance prochaine.
+
+
+
+
+
+
+
+
+
