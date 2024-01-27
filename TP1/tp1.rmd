@@ -33,7 +33,7 @@ beta0_manuel <- Y_bar - beta1_manuel * X_bar
 
 #Calcul du modèle de régression linéaire
 y = beta0_manuel + beta1_manuel*X
-plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", xlab = "Max03 : valeur maximale d'ozone par jour", ylab = "T12 : Température relevée à 12H")
+plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", ylab = "Max03 : valeur maximale d'ozone par jour", xlab = "T12 : Température relevée à 12H")
 lines(X, y, col = 'red', lwd = 2)
 legend("topright", legend = "Droite de régression", col = "red", lwd = 2)
 ```
@@ -50,7 +50,7 @@ beta1_lm = coef(prediction)[2]
 
 #Calcul du modèle de régression linéaire avec les coefficients obtenus avec lm
 y_lm = beta0_lm + beta1_lm*X
-plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", xlab = "Max03 : valeur maximale d'ozone par jour", ylab = "T12 : Température relevée à 12H")
+plot(X, Y, main = "Régression linéaire entre la valeur maximale d'ozone et la température relevée à 12H", ylab = "Max03 : valeur maximale d'ozone par jour", xlab = "T12 : Température relevée à 12H")
 lines(X, y_lm, col = 'green', lwd = 2)
 legend("topright", legend = "Droite de régression", col = "green", lwd = 2)
 
@@ -89,31 +89,56 @@ cat("R2 : ", R2_lm)
 $R^2$ calculé avec la formule du cours semble être plus précis qu'avec lm
 
 ## Question 4
+On souhaite calculer les bornes inferieurs et supérieurs de l'intervalle de confiance.
+On utilise la formule vue en cours 
+$$\beta_0 +\beta_1X_{n+1} \in \bigg[\hat{\beta}_0 + \hat{\beta}_1 \pm t_{1-\frac{\alpha}{2};n-2}\cdot \hat\sigma_n\sqrt{1 + \frac{1}{n}+ \frac{(x_{n+1}-\overline{x}_n)^2}{\sum(x_i-\overline{x}_n)^2}}\bigg] $$
 ```{r}
 n = length(Y)
+# On définit alpha = 0.05 pour avoir un intervalle de confiance à 95%
 alpha = 0.05
+
+#Fonction qt pour le quantile d'une loi de Student a n-2 degrés de liberté
 t = qt(1-alpha/2, n-2)
-sigma_2 = sum((Y-beta0_manuel - beta1_manuel*X)^2)/(n-2)
-sx_2 = (var(X))^2
-interv = t*sqrt(sigma_2) * sqrt(1+(1/n)+(X-mean(X))^2/(n*sx_2))
+
+#Calcul du \hat{\sigma}
+hat_sigma = sqrt(sum((Y-beta0_manuel - beta1_manuel*X)^2)/(n-2))
+
+#Calcul de l'intervalle de confiance
+interv = t*hat_sigma *sqrt(1 + (1/n) + (X-mean(X))/(sum((X-mean(X))^2)))
 borneInf = beta_0barre + beta_1barre*X - interv
 borneSup = beta_0barre + beta_1barre*X + interv
-plot(X,Y)
-curve(beta_0barre+beta_1barre*x -t*sqrt(sigma_2) * sqrt(1+(1/n)+(x-mean(X))^2/(n*sx_2)), from=min(X), to=max(X), col="red", add=TRUE)
-curve(beta_0barre+beta_1barre*x +t*sqrt(sigma_2) * sqrt(1+(1/n)+(x-mean(X))^2/(n*sx_2)), from=min(X), to=max(X), col="red", add=TRUE)
 
+#Représentation graphique
+plot(X,Y, main = "Intervalles de confiance pour Y à 95%", ylab = "Max03 : valeur maximale d'ozone par jour", xlab = "T12 : Température relevée à 12H")
+lines(X, y_lm, col = 'yellow', lwd = 2)
+curve(beta_0barre + beta_1barre*x - t*hat_sigma*sqrt(1 + (1/n) + (x-mean(X))/(sum((x-mean(X))^2))), from=min(X), to=max(X), col="blue", add=TRUE, lwd = 2)
+curve(beta_0barre + beta_1barre*x + t*hat_sigma*sqrt(1 + (1/n) + (x-mean(X))/(sum((x-mean(X))^2))), from=min(X), to=max(X), col="purple", add=TRUE, lwd = 2)
+legend("topright", legend = c("Borne supérieur","Droite de régression", "Borne inférieur"), col = c("purple", "yellow", "blue"), lwd = 2)
 ```
-
+Commentaire : à faire
 ## Question 5
-
+```{r}
+prediction = lm(Y~X, data = ozone)
+summary(prediction)
+```
+La commande $lm$ donne plusieurs informations sur la régression linéaire entre $X$ et $Y$ comme par exemple l'ordonnée à l'origine appelée intercept et la pente appelée $X$, toutes deux trouvables dans la section coefficients.
+On peut aussi obtenir les résidus studentisés dans la section residuals.
 
 ## Question 6
 Hypothèse de bruit gaussien.
 $$Y_i = \beta_0 + \beta_1X_i + \varepsilon_i$$
 $$\hat{\varepsilon}_i= Y_i - \hat{Y}_i$$
 $\Longrightarrow$ résidus studentisés, vérifier qu'ils suivent une loi de Student ($n-3$ degrés de liberté)
-Rendre le rapport à la séance prochaine.
-
+```{r}
+par(mfrow = c(2,2))
+plot(prediction)
+shapiro.test(prediction$residuals)
+```
+Le test de Shapiro-Wilk permet de vérifier si les résidus suivent une loi normale.
+Ici, on obtient $W = 0.99235$ et $p-value = 0.792$.
+Le fait que $W$ soit proche de $1$ signifie que les résidus ne présentent pas de déviation par rapport à la normalité.
+La valeur de $p-value$ étant bien au dessus de $0.05$ le seuil usuel, on en conclut qu'il n'y a pas assez de preuves pour rejeter la normalité des résidus.
+En conclusion, ce test permet de dire que les résidus semblent suivre une loi normale
 
 
 
