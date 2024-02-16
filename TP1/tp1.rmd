@@ -128,7 +128,6 @@ On peut aussi obtenir les résidus studentisés dans la section residuals.
 Hypothèse de bruit gaussien.
 $$Y_i = \beta_0 + \beta_1X_i + \varepsilon_i$$
 $$\hat{\varepsilon}_i= Y_i - \hat{Y}_i$$
-$\Longrightarrow$ résidus studentisés, vérifier qu'ils suivent une loi de Student ($n-3$ degrés de liberté)
 ```{r}
 par(mfrow = c(2,2))
 plot(prediction)
@@ -141,9 +140,154 @@ La valeur de $p-value$ étant bien au dessus de $0.05$ le seuil usuel, on en con
 En conclusion, ce test permet de dire que les résidus semblent suivre une loi normale
 
 
+## Exercice 2
+```{r}
+rm(list=ls())
+```
+On considère à présent les données contenues dans data1.RData.
+On souhaite étudier la dépendance de la consommation électrique (kwh) avec des variables
+décrivant la température (cldd et htdd).
+## Question 1
+```{r}
+load("data1.RData")
+data = khct.df
+```
+## Question 2
+```{r}
+pairs(data)
+```
 
+## Question 3
+D'accord.
 
+## Question 4
+Régression linéaire à l'aide de la fonction $lm$ en considérant jusqu'a 1983.
+```{r}
+data = data[1:168,]
+Y = sqrt(data$kwh)
+X1 = data$htdd
+X2 = data$cldd
+prediction = lm(Y ~ X1 + X2, data = data)
 
+#On récupère les coefficients beta0 et beta1 contenus dans la liste que génère la commande lm
+beta0_lm = coef(prediction)[1]
+beta1_lm = coef(prediction)[2]
+beta2_lm = coef(prediction)[3]
 
+#Calcul du modèle de régression linéaire avec les coefficients obtenus avec lm
+y_lm = beta0_lm + beta1_lm*X1 + beta2_lm*X2
 
+plot(data$t1, Y, main = "Régression linéaire multiple la racine du kwh et cldd+htdd", ylab = "KWH", xlab = "Temps en années")
+lines(data$t1, y_lm, col = 'red', lwd = 3)
+legend("topright", legend = "Régression multiple", col = "red", lwd = 3)
+
+```
+## Question 5
+Le modèle ne semble pas correspondre, les hypothèses de bruit ne sont pas satisfaites.
+
+## Question 6
+On considère le nouveau modèle liant $\sqrt{kwh}$, $htdd$, $cldd$, $t1$ et $t2=(t1-1977)^2$.
+
+```{r}
+data = data[1:168,]
+Y = sqrt(data$kwh)
+X1 = data$htdd
+X2 = data$cldd
+X3 = data$t1
+X4 = (data$t1-1977)^2
+
+prediction = lm(Y ~ X1 + X2 + X3 + X4, data = data)
+
+#On récupère les coefficients beta0 et beta1 contenus dans la liste que génère la commande lm
+beta0_lm = coef(prediction)[1]
+beta1_lm = coef(prediction)[2]
+beta2_lm = coef(prediction)[3]
+beta3_lm = coef(prediction)[4]
+beta4_lm = coef(prediction)[5]
+
+#Calcul du modèle de régression linéaire avec les coefficients obtenus avec lm
+y_lm = beta0_lm + beta1_lm*X1 + beta2_lm*X2 + beta3_lm*X3 + beta4_lm*X4
+plot(data$t1, Y, main = "Régression linéaire multiple la racine du kwh et cldd+htdd+t1+t2=(t1-1977)²", xlab = "Temps en années", ylab = "KWH")
+lines(data$t1, y_lm, col = 'lightgreen', lwd = 3)
+legend("topright", legend = "Régression multiple", col = "lightgreen", lwd = 3)
+```
+## Question 7
+```{r}
+rm(list=ls())
+load("data1.RData")
+data = khct.df
+data = data[169:180,]
+
+Y = sqrt(data$kwh)
+X1 = data$htdd
+X2 = data$cldd
+X3 = data$t1
+X4 = (data$t1-1977)^2
+
+prediction = lm(Y ~ X1 + X2 + X3 + X4, data = data)
+
+#On récupère les coefficients beta0 et beta1 contenus dans la liste que génère la commande lm
+beta0_lm = coef(prediction)[1]
+beta1_lm = coef(prediction)[2]
+beta2_lm = coef(prediction)[3]
+beta3_lm = coef(prediction)[4]
+beta4_lm = coef(prediction)[5]
+
+#Calcul du modèle de régression linéaire avec les coefficients obtenus avec lm
+y_lm = beta0_lm + beta1_lm*X1 + beta2_lm*X2 + beta3_lm*X3 + beta4_lm*X4
+plot(data$t1, Y, main = "Régression linéaire multiple la racine du kwh et cldd+htdd+t1+t2=(t1-1977)²", xlab = "Temps en mois pour l'année 1984", ylab = "KWH")
+lines(data$t1, y_lm, col = 'lightblue', lwd = 3)
+legend("topright", legend = "Régression multiple", col = "lightblue", lwd = 3)
+```
+Hypothèse de normalité du bruit : 
+$$\varepsilon \sim \mathcal{N}(0,\sigma^2I\alpha)$$
+$$\hat\varepsilon_{n+1}\sim\mathcal{N}(0,\overbrace{\sigma^2(X_{n+1}(\mathbb{X}^t\mathbb{X})^{-1}X_{n+1}+1}^{m^2}))$$
+$$V(\hat\varepsilon_{n+1}) = V(X_{n+1}(\beta-\hat\beta)) + \underbrace{V(\varepsilon_{n+1})}_{\sigma^2}$$
+$$\varepsilon_{n+1}\perp \!\!\! \perp \beta$$
+Intervalle de confiance : 
+On cherche $r$ tel que 
+$$P(Y_{n+1} \in [\hat Y_{n+1}\pm r]) = 1-\alpha$$
+$$P\bigg(\frac{X_{n+1} - \hat Y_{n+1}}{\sigma m} \in \bigg[\pm \frac{r}{\sigma m}\bigg]\bigg) = 1 - \alpha$$
+$$ P\bigg(\frac{|\hat\varepsilon_{n+1}|}{\hat\sigma_n m} \leq t_{n-rk(\mathbb{X})}(1-\frac{\alpha}{2})\bigg) = 1 - \alpha$$
+Intervalle de confiance à $100(1-\alpha)\%$ : 
+$$X_{n+1} \in \bigg[ \hat Y_{n+1}\pm \hat\sigma_n\cdot t_{n-rk(\mathbb{X})}(1-\frac{\alpha}{2})\sqrt{1 + X_{n+1}(\mathbb{X}^t\mathbb{X})^{-1}X_{n+1}}\bigg] $$
+où $n-rk(\mathbb{X})$ est le nombre de degrés de liberté de la loi de Student.
+$X_k = (1, X_k^{(1)}, ..., X_k^{(p)})$.
+Ici, $p=4$, $X^{(3)} = t_1$.
+On va chercher à tracer $Y_k$ en fonction de $t_1$ et de même pour $\hat Y_k$.
+
+```{r}
+# Nombre d'observations
+n = length(Y)
+
+# On définit alpha = 0.2 pour avoir un intervalle de confiance à 80%
+alpha = 0.2
+
+# Degré de liberté 
+d = n - length(coef(prediction))
+
+# Quantile de la distribution t
+t = qt(1 - alpha / 2, d)
+
+# \hat{\sigma}
+hat_sigma = sqrt(sum((Y - y_lm)^2) / (n - 2))
+
+# Calcul des intervalles de confiance
+interv = t * hat_sigma * sqrt(1 +
+              (1/n) +
+              ((X1 - mean(X1))^2 / sum((X1 - mean(X1))^2)) +
+              ((X2 - mean(X2))^2 / sum((X2 - mean(X2))^2)) +
+              ((X3 - mean(X3))^2 / sum((X3 - mean(X3))^2)) +
+              ((X4 - mean(X4))^2 / sum((X4 - mean(X4))^2)))
+
+borneInf = y_lm - interv
+borneSup = y_lm + interv
+
+# Tracé du graphique avec l'intervalle de confiance
+plot(data$t1, Y, main = "Régression linéaire multiple la racine du kwh et cldd+htdd+t1+t2=(t1-1977)²", xlab = "Temps en mois pour l'année 1984", ylab = "KWH")
+lines(data$t1, y_lm, col = 'lightblue', lwd = 3)
+lines(data$t1, borneSup, col = 'red', lty = 2)
+lines(data$t1, borneInf, col = 'red', lty = 2)
+legend("topright", legend = c("Borne supérieure","Régression multiple", "Borne inférieure"), col = c("red", "lightblue", "red"), lwd = c(2, 3, 2), lty = c(2, 1, 2))
+```
 
