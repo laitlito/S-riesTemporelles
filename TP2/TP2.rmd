@@ -1,0 +1,95 @@
+---
+title: "TP2"
+author: "Lélio"
+date: "2024-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## TP2
+```{r}
+rm(list = ls())
+```
+
+```{r}
+data(AirPassengers)
+x <- AirPassengers
+logx = log(AirPassengers)
+```
+
+## Question 1
+```{r}
+par(mfrow = c(2,1))
+plot(AirPassengers, xlab = "Temps en années", ylab = "Total international de passagers moyens par mois", main = "Total international de passagers moyens par mois en fonction du temps")
+plot(log(AirPassengers), col ="red", xlab = "Temps en années", ylab = "Transformée logarithmique")
+```
+## Question 2
+```{r}
+#On définit x et y
+x = AirPassengers
+y = log(x)
+# On définit la longueur des données
+n = length(y)
+# On crée un vecteur pour le temps de 1 à n
+t = 1:n
+# On crée 12 variables s pour les saisonnalités 
+for(i in 1:12){
+  # On crée 12 vecteurs vides
+  su = rep(0, times=12)
+  # On ajoute 1 en ième position du vecteur s_i
+  su[i] = 1
+  s = rep(su,times=12)
+  # On crée les variables appellées s1, s2, etc...
+  assign(paste('s', i ,sep=""), s)
+}
+
+# On fait la régression linéaire mutliples entre toute les variables précédemment définies (-1 mettre l'or)
+reg = lm(y~t + s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12-1)
+```
+## Question 3
+
+```{r}
+a = coef(reg)[2:13]
+b = coef(reg)[1]
+c = a - mean(a)
+```
+## Question 4
+
+```{r}
+y_corrigé = y - c
+plot(y, type = "l", col = "blue", xlab = "Temps en années", ylab = "Transformée logarithmique", main = "Série temporelle et Version corrigée")
+lines(y_corrigé, col = "green", lwd = 2)
+legend("topright", legend = c("Série temporelle", "Version corrigée"), col = c("blue", "green"), lwd = 2:2)
+```
+On constate que la version corrigée présente moins la saisonnalité tout en gardant la tendance
+
+## Question 5 
+```{r}
+
+saison = s1
+residu = y_corrigé - (coef(reg)[1]*t + s)
+par(mfrow = c(2,2))
+plot(y, main = "Série brute", xlab = "Temps en années", ylab = "Transformée logarithmique")
+plot(t, coef(reg)[1]*t + mean(a), lwd = 2, type = "l")
+plot(s, lwd = 2, type = "l")
+plot(residu)
+
+```
+
+
+## Question 6
+
+```{r}
+par(mfrow = c(2,2))
+plot(decompose(y))
+```
+
+## Question 7
+
+```{r}
+
+
+```
+
