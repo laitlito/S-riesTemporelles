@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+author: "Lélio"
+date: "2024-03-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+## Exercice 1
+
+```{r}
+data = c(9.8,10.1,8.3,7.9,9.5,7.5,10.6,7.7,8.8,1.5,2.9,7.4,6.2,6.9,7.6,7.9,8.8,7.7,9.0,7.4,8.0,8.3,7.3,7.8)
+dataTS = ts(data, frequency = 12, start = c(1968,7))
+```
+$$\hat{x}_{n,h} = (1-\alpha)\cdot \sum_{i=1}^n \alpha^{n-i}\cdot x_i$$
+```{r}
+hatxnh = 0
+alpha = 0.8
+n = length(dataTS)
+for(i in 1:n){
+  hatxnh = hatxnh + (1-alpha)*alpha^{n-i}*dataTS[i]
+}
+
+```
+
+```{r}
+hatxh1 = c()
+hatxh2 = c()
+hatxh1[1] = (1-alpha)*dataTS[1]
+hatxh2[1] = dataTS[1]
+
+for(i in 2:n){
+  hatxh1[i] = (1-alpha)*dataTS[i] + alpha*hatxh1[i-1]
+}
+hatxnh1 = hatxh1[24]
+
+for(i in 2:n){
+  hatxh2[i] = (1-alpha)*dataTS[i] + alpha*hatxh2[i-1]
+}
+hatxnh2 = hatxh2[24]
+
+plot(hatxh1,type="l", lwd = 2)
+lines(hatxh2, col = "red", lwd=2)
+
+
+```
+
+```{r}
+alpha = 0.9
+hatxh109 = c()
+hatxh209 = c()
+hatxh109[1] = (1-alpha)*dataTS[1]
+hatxh209[1] = dataTS[1]
+
+for(i in 2:n){
+  hatxh109[i] = (1-alpha)*dataTS[i] + alpha*hatxh109[i-1]
+}
+hatxnh109 = hatxh109[24]
+
+for(i in 2:n){
+  hatxh209[i] = (1-alpha)*dataTS[i] + alpha*hatxh209[i-1]
+}
+hatxnh209 = hatxh209[24]
+#########################################################
+alpha = 0.5
+hatxh105 = c()
+hatxh205 = c()
+hatxh105[1] = (1-alpha)*dataTS[1]
+hatxh205[1] = dataTS[1]
+
+for(i in 2:n){
+  hatxh105[i] = (1-alpha)*dataTS[i] + alpha*hatxh105[i-1]
+}
+hatxnh105 = hatxh105[24]
+
+for(i in 2:n){
+  hatxh205[i] = (1-alpha)*dataTS[i] + alpha*hatxh205[i-1]
+}
+hatxnh205 = hatxh205[24]
+#########################################################
+alpha = 0.1
+hatxh101 = c()
+hatxh201 = c()
+hatxh101[1] = (1-alpha)*dataTS[1]
+hatxh201[1] = dataTS[1]
+
+for(i in 2:n){
+  hatxh101[i] = (1-alpha)*dataTS[i] + alpha*hatxh101[i-1]
+}
+hatxnh101 = hatxh101[24]
+
+for(i in 2:n){
+  hatxh201[i] = (1-alpha)*dataTS[i] + alpha*hatxh201[i-1]
+}
+hatxnh201 = hatxh201[24]
+
+plot(hatxh209, type = "l", lwd=3, ylim=c(0,10))
+lines(hatxh205, lwd=3)
+lines(hatxh201,  lwd=3)
+
+
+```
+
+
+
+
+
+
+

@@ -1,0 +1,70 @@
+---
+title: "Exercice 3 du TD1"
+author: "Lélio"
+date: "2024-03-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+```
+## Exercice 3
+## Question 1
+
+```{r}
+X_i = c(15, 20, 25, 30, 35, 40, 45, 50)
+Y_i = c(120, 67, 49, 27, 20, 9, 7, 3)
+plot(X_i, Y_i, pch = 19, col = "red", main = "Nombre de bactéries survivantes en fonction du temps d'exposition", xlab = "Temps en minutes", ylab = "Nombre de bactéries survivantes")
+```
+
+Il est assez évident de voir qu'il n'est pas possible de trouver une droite qui soit assez proche de tous les points du nuage de point $(x_i, y_i)$.
+
+## Question 2
+```{r}
+# Relation entre Z et 
+Z_i = log(Y_i)
+plot(X_i, Z_i, pch = 19, col = "blue", main = "Logarithme du nombre de bactéries survivantes en fonction du temps d'exposition", xlab = "Temps en minutes", ylab = "Nombre de bactéries survivantes")
+```
+
+On voit maintenant clairement la relation linéaire entre $x_i$ et $z_i$.
+
+## Question 3
+Pour quantifier la qualité du lien linéaire existant, on peut utiliser le coefficient de détéermination $R^2$.
+$$R^2 = \frac{||\hat Y - \overline{Y}_n||^2}{||Y-\overline{Y}_n||^2} = \frac{\displaystyle\sum_{i=1}^n (\hat Y_i-\overline{Y}_n)^2}{\displaystyle\sum_{i=1}^n(Y_i-\overline{Y}_n)^2}$$
+```{r}
+X_i_barre = mean(X_i)
+Z_i_barre = mean(Z_i)
+
+beta1chapeau = sum((X_i - X_i_barre) * (Z_i - Z_i_barre)) / sum((X_i - X_i_barre)^2)
+beta0chapeau = Z_i_barre - beta1chapeau*X_i_barre
+
+Zchapeau = beta0chapeau + beta1chapeau*X_i
+
+SSE = sum((Zchapeau - Z_i_barre)^2)
+SST = sum((Z_i - Z_i_barre)^2)
+
+R2 = SSE/SST
+```
+
+```{r}
+prediction = lm(Z_i~X_i)
+R2_lm = summary.lm(prediction)$r.squared
+```
+
+## Question 4
+```{r}
+beta0 = coef(prediction)[1]
+beta1 = coef(prediction)[2]
+```
+
+## Question 5
+```{r}
+plot(X_i, Z_i, pch = 19, col = "red", main = "Logarithme du nombre de bactéries survivantes en fonction du temps d'exposition", xlab = "Temps en minutes", ylab = "Nombre de bactéries survivantes")
+lines(X_i, beta0 + beta1*X_i, lwd = 2, col = "blue")
+legend("topright", legend = "Droite de regréssion", col = "blue", lwd = 2)
+```
+
