@@ -1,0 +1,69 @@
+---
+title: "TD1Exercice4"
+author: "Lélio"
+date: "2024-03-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+
+## Question 1
+```{r}
+X_i = c(10, 10, 10, 12, 12, 12, 14, 14, 14, 16, 16, 16, 18, 18, 18, 20, 20, 20)
+Y_i = c(16, 12, 11, 16, 17, 13, 18, 14, 13, 21, 12, 17, 25, 18, 21, 20, 26, 23)
+plot(X_i, Y_i, main = "Nombre de bactéries en fonction de la température", xlab = "Température en °C", ylab = "Nombre de bactéries", type = "l", col = "red", lwd = 2)
+```
+```{r}
+X_i_barre = mean(X_i)
+Y_i_barre = mean(Y_i)
+
+beta1chapeau = sum((X_i - X_i_barre)*(Y_i - Y_i_barre))/sum((X_i-X_i_barre)^2)
+beta0chapeau = Y_i_barre - X_i_barre*beta1chapeau
+
+Ychapeau = beta0chapeau + beta1chapeau*X_i
+
+SSE = sum((Ychapeau - Y_i_barre)^2)
+SST = sum((Y_i - Y_i_barre)^2)
+
+R2 = SSE/SST
+
+```
+
+```{r}
+prediction = lm(Y_i~X_i)
+beta0 = coef(prediction)[1]
+beta1 = coef(prediction)[2]
+sigma2 = sum((Y_i-beta0 - beta1*X_i)^2)/(length(X_i)-2)
+```
+
+```{r}
+t_statistic <- (beta1 - 20000) / sqrt(sigma2 / sum((X_i-mean(X_i))^2))
+p_value <- 2*pt(-abs(t_statistic), df = length(X_i) - 2)
+p_value
+```
+Donc le scientifique est un neuille.
+
+```{r}
+X_19 = 19
+Y_19 = beta0 + beta1*X_19
+
+SE = sqrt(sigma2 * (1/length(X_i) + (X_19-X_i_barre)^2/sum((X_i-X_i_barre)^2)))
+borne = qt(0.95, df = length(X_i)-2)*SE
+
+borneInf = Y_19 - borne
+borneSup = Y_19 + borne
+
+plot(X_i, Y_i, main = "Nombre de bactéries en fonction de la température", xlab = "Température en °C", ylab = "Nombre de bactéries")
+lines(c(X_19, X_19), c(borneInf, borneSup))
+abline(h = Y_19, lwd =2 )
+abline(h = borneInf, lty =2)
+abline(h = borneSup, lty =2)
+```
+
+
