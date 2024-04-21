@@ -1,0 +1,218 @@
+---
+title: "Exam"
+author: "Lélio"
+date: "2024-03-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+
+## Question 1
+
+```{r}
+# On charge le fichier kwh.R
+X = load("Kwh.R")
+```
+
+```{r}
+# Représentation de kwh avec la commande plot
+plot(kwh, main = "Kwh en fonction des années", xlab = "Temps en années", ylab = "Kwh")
+```
+
+## Question 2
+
+Cette série temporelle semble présenter une certaine saisonalité (on remarque des pics différents de consommation de kwh au sein d'une année, on peut penser que c'est dû au changement de température en fonction des saisons) ainsi qu'une certaine tendance (on voit que la courbe semble suivre une fonction affine, on peut alors penser que la consommation moyenne d'electricité tend a augmenter en fonction des années).
+
+## Question 3
+
+On définit les $k$ coefficients d'auto-correlations par :
+$$\rho_n(k) = \frac{\hat\sigma_n(k)}{\hat\sigma_n(0)}$$
+où $\hat\sigma_n(k)$ est donné par :
+$$\hat\sigma_n(k) = \frac{1}{n}\sum_{i=1}^{n-k} (x_i-\overline{x}_n)(x_{i+1}-\overline{x}_n)$$
+et $\hat\sigma_n(0)$ est donné par : 
+$$\sigma_n(0) = \frac{1}{n} \sum (x_i - \overline{x})^2$$
+
+```{r}
+# Il nous est demandé de calculer les 40 premiers coefficients d'auto-correlation.
+k = 40
+# n correspond au nombre d'éléments de la série temporelle
+n = length(kwh)
+# On calcule \overline{x}
+x_barre = mean(kwh)
+# On calcule \hat{\sigma}_n(0)
+sigma_n_0_chapeau = 1/n * sum((kwh - x_barre)^2)
+
+# On calcule \hat{\sigma}_n(k)
+sigma_n_k_chapeau = c()
+for(i in 1:n-k){
+  sigma_n_k_chapeau[i] = (kwh[i] - x_barre)*(kwh[i+1]-x_barre)
+}
+sigma_n_k_chapeau = sigma_n_k_chapeau/n
+
+#Calcul de \rho_n(k)
+rho_n_k = c()
+rho_n_k = sigma_n_k_chapeau/sigma_n_0_chapeau
+h=1:40
+#plot(h, rho_n_k[1:40])
+#for(i in 1:40){
+ # abline(v = rho_n_k[i])
+#}
+#hist(rho_n_k)
+```
+
+## Question 5
+
+## Question 6
+```{r}
+# On trace le lag-plot de la série temporelle en précisan l'horizon : de 1 à 14
+lag.plot(kwh, set.lags = 1:14)
+```
+
+On observe que le lag-plot 12 est beacuoup plus concentré que les autres qui sont plus éparses. Aussi, les lag 1,2 et 13,14 se ressemblent respectivement. On peut confirmer cette conjecture en regardant jusqu'à des horizons plus loins, par exemple : 
+```{r}
+lag.plot(kwh, set.lags = 1:24)
+```
+
+où l'on voit bien la saisonalité.
+
+## Question 7
+On va estimer la tendance par un modèle de régression linéaire.
+$$Y_i = \beta_0 + \beta_1*X_i$$
+```{r}
+# On récupère les temps 
+t = 1:length(kwh)
+# On fait la régression linéaire avec lm entre le temps et les kwh
+reg = lm(kwh ~ t, data = kwh)
+# On récupère les coefficients beta0 et beta1
+beta0 = coef(reg)[1]
+beta1 = coef(reg)[2]
+# On fait un tracé de kwh en fonction du temps
+plot(t, kwh, type = "l", main = "Droite de régression linéaire pour kwh")
+# Puis on ajoute la droite de régression avec les coefficients beta0 et beta1 récupéres
+lines(beta0 + beta1*t, col = "red", lwd = 2)
+legend("topright", legend = "Droite de régression", col = "red", lwd = 2)
+
+```
+
+On va passer par une régression linéaire multiple pour pouvoir estimer et retrancher la tendance
+```{r}
+X = kwh
+logx = log(X)
+n = length(logx)
+t = 1:n
+for(i in 1:15){
+  # On crée 12 vecteurs vides
+  su = rep(0, times=12)
+  # On ajoute 1 en ième position du vecteur s_i
+  su[i] = 1
+  s = rep(su,times=15)
+  # On crée les variables appellées s1, s2, etc...
+  assign(paste('s', i ,sep=""), s)
+}
+reg = lm(logx~t + s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12-1)
+
+a = coef(reg)[2:13]
+b = coef(reg)[1]
+c = a - mean(a)
+
+y_corrige = logx - c
+plot(logx, type = "l", col = "blue", xlab = "Temps en années", ylab = "Transformée logarithmique", main = "Série temporelle et Version corrigée")
+lines(y_corrige, col = "green", lwd = 2)
+legend("topright", legend = c("Série temporelle", "Version corrigée"), col = c("blue", "green"), lwd = 2:2)
+```
+
+Pour pouvoir tracer la tendance seule, on trace l'exponentielle (car on a pris la transformée logarithmique pour faire la régression linéaire multiple) de beta1*t auquel on ajoute la moyenne des coefficients de la régression). On voit que la courbe correspond plus ou moins à celle obtenue avec plot(decompose(kwh))
+```{r}
+tendance = exp(coef(reg)[1]*t + mean(a))
+plot(t, tendance, lwd = 2, type = "l", main = "Tendance en fonction du temps")
+```
+## Question 8
+```{r}
+# On retranche la tendance à la série temporelle kwh et on en fait une représentation graphique
+X = kwh - tendance
+plot(X)
+```
+
+À nouveau, on voit que le graphe correspond plutôt à celui obtenu avec la commande plot(decompose(kwh))
+
+## Question 9
+
+```{r}
+plot(decompose(kwh))
+```
+
+Même remarques qu'aux questions 7 et 8.
+
+
+## Exercice 2
+```{r}
+rm(list=ls())
+```
+
+## Question 1
+```{r}
+load("Kwh.R")
+X = kwh[1:168]
+kwh = ts(X)
+plot(kwh, type = "l", main = "Kwh en fonction du temps jusqu'en 1983")
+```
+
+On va prédire les données de 1984.
+
+## Exercice 1
+Lissage exponentiel simple pour prédire à l'horizon $h$.
+$$\hat x_{n,h} = (1-\alpha) \sum_{k=0}^{n-1} \alpha^k x_{n-k}$$
+
+
+```{r}
+alpha = 0.9
+n = length(kwh)
+
+xh=c()
+for (i in 1:n){
+  xh=c(xh,(1-alpha)*sum(kwh[1:i]*alpha^(seq(i-1,0,-1))))
+  }
+
+plot(kwh)
+lines(xh, col = "red", lwd = 2)
+
+```
+
+## Question 2
+
+Implémentation du lissage exponentiel double
+
+```{r}
+h = 1:168
+L1 = c()
+for(i in 1:n){
+  L1 = c(L1, (1-alpha)*sum(kwh[1:i]*alpha^(seq(i-1,0,-1))))
+}
+L2 = c()
+for(i in 1:n){
+  L2 = c(L2, (1-alpha)*sum(L1[1:i]*alpha^(seq(i-1,0,-1))))
+}
+a1 = 2*L1 - L2
+a2 = ((1-alpha)/alpha)*(L1-L2)
+xnh = a1[n] + a2[n]*(1:h)
+
+plot(kwh)
+abline(h = xnh)
+```
+
+## Question 3
+Erreur de prévision 
+```{r}
+
+```
+
+
+
+
+

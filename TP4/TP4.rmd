@@ -1,0 +1,88 @@
+---
+title: "TP4"
+author: "Lélio"
+date: "2024-03-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+## Question 1
+
+```{r}
+data = load("Xts.Rdata")
+```
+
+## Question 2
+
+```{r}
+plot(Xts)
+plot(decompose(Xts))
+```
+En faisant une représentation graphique du jeu de données, il ne semble pas y avoir de tendance mais on observe bien une saisonalité. En faisant une représentation graphique du résultat de la fonction `decompose`, on observe une **très** faible tendance, quasiment invisible à l'oeil nu qui sera négligée dans la suite. La saisonalité est de periodicité annuelle.
+
+## Question 3
+Formule d'une moyenne mobile d'ordre $k$ au temps $n$ : 
+$$\overline{X}_n = \frac{1}{k}\sum_{j=0}^{k-1}x_{n-j}$$
+
+```{r}
+k = 12
+x = c()
+for (i in k:length(Xts)) {
+  x = c(x, 1/k*sum(Xts[(i-(k-1)):i]))
+}
+MX = ts(x, start = c(2001, 1), frequency = 12)
+plot(MX)
+```
+
+## Question 4
+
+```{r}
+MXs = Xts - MX
+```
+
+## Question 5
+
+```{r}
+composante_periodique = decompose(MXs)$seasonal
+plot(composante_periodique)
+```
+
+## Question 6 
+
+```{r}
+Xtrend = Xts - composante_periodique
+plot(Xtrend)
+```
+## Question 7
+
+```{r}
+k = 12
+x = c()
+for (i in k:length(Xtrend)) {
+  x = c(x, 1/k*sum(Xtrend[(i-(k-1)):i]))
+}
+MXtrend = ts(x, start = c(2001, 1), frequency = 12)
+plot(MXtrend)
+```
+## Question 8 
+
+```{r}
+plot(MXtrend)
+lines(decompose(MXtrend)$trend, col = "red", lwd = 2)
+```
+
+On a bien une estimation lissée.
+
+## Question 9 
+
+
+
+
+
+

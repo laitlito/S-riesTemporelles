@@ -1,0 +1,136 @@
+---
+title: "Untitled"
+author: "Lélio"
+date: "2024-04-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+
+## Exercice 1
+Copier la correction du dernier TD
+
+## Exercice 2
+
+### Question 1
+
+```{r}
+# On génère une simulation ARMA, de longeur 100
+X_n = arima.sim(n=100, model = list(ar = c(0.9, -0.8)))
+# On trace cette simulation de la série temporelle
+plot.ts(X_n)
+# On calcule la moyenne de la simulation
+mean(X_n)
+# On calcule la fonction d'autocorrélation. Elle mesure la corrélation entre les différents retards.
+acf(X_n)
+# Pareil mais en utilisant la covariance au lieu de la corrélation.
+acf(X_n,type = 'covariance')
+# On calcule la fonction d'autocorrélation partielle, qui tient compte des différents retards intermédiaires.
+pacf(X_n)
+```
+```{r}
+simulations = matrix(nrow = 10000, ncol = length(X_n))
+for(i in 1 : 10000){
+  X_ni =arima.sim(n = 100, model = list(ar = c(0.9, -0.8)))
+  simulations[i,] = X_ni
+}
+vect = c()
+for(i in 1 : length(X_n)){
+  vect = c(vect, (colMeans(simulations)))
+}
+temp = 0
+for(i in 1:100){
+  temp = temp+vect[i]^2
+}
+sqrt(temp)
+```
+
+La norme euclidienne du vecteur des moyennes de 10000 réalisations d'un processus ARMA est proche de $0$ ce qui nous permet de dire que le processus est centré.
+
+### Question 2
+
+Graphiquement, on voit sur l'acf une trop forte décroissance, signe d'une non saisonalité.
+
+### Question 3
+
+Pour l'acf, on remarque des valeurs qui sortent de l'intervalle de confiance, d'une manière periodique.
+Pour la pacf, on remarque deux grandes valeurs au début qui correspondent à un modèle auto-régressif d'ordre $2$.
+
+## Exercice 3
+
+### Question 1 & 2
+```{r}
+# On génère une simulation ARMA, de longeur 100
+X_n1 = arima.sim(n=100, model = list(ma = -1/3))
+X_n2 = arima.sim(n = 100, model = list(ar = 4/15, -1/15))
+```
+
+```{r}
+# On trace cette simulation de la série temporelle
+plot.ts(X_n1, main = "Question 1")
+plot.ts(X_n2, main = "Question 2")
+```
+
+```{r}
+# On calcule la moyenne de la simulation
+mean(X_n1)
+mean(X_n2)
+```
+
+```{r}
+# On calcule la fonction d'autocorrélation. Elle mesure la corrélation entre les différents retards.
+acf(X_n1)
+acf(X_n2)
+```
+
+```{r}
+# Pareil mais en utilisant la covariance au lieu de la corrélation.
+acf(X_n1,type = 'covariance')
+acf(X_n2, type = 'covariance')
+```
+
+
+
+```{r}
+# On calcule la fonction d'autocorrélation partielle, qui tient compte des différents retards intermédiaires.
+pacf(X_n1)
+pacf(X_n2)
+```
+
+
+## Exercice 4
+
+### Question 1
+
+```{r}
+X_n = arima.sim(n=100, model = list(ar = c(1, -1/4), ma = -1))
+plot.ts(X_n)
+```
+### Question 2
+
+```{r}
+modelConnu = arima(X_n, order = c(2, 0, 1), include.mean = FALSE)
+modelConnu$coef
+```
+### Question 3
+
+```{r}
+```
+
+## Exercice 5
+
+### Question 1
+
+```{r}
+m = 50
+X_n = arima.sim(n = 105, model = list(ar = c(1, -1/2, 1/3)))
+```
+
+
+

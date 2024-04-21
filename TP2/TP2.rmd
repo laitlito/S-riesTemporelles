@@ -23,7 +23,7 @@ logx = log(AirPassengers)
 ```{r}
 par(mfrow = c(2,1))
 plot(AirPassengers, xlab = "Temps en années", ylab = "Total international de passagers moyens par mois", main = "Total international de passagers moyens par mois en fonction du temps")
-plot(log(AirPassengers), col ="red", xlab = "Temps en années", ylab = "Transformée logarithmique")
+plot(logx, col ="red", xlab = "Temps en années", ylab = "Transformée logarithmique")
 ```
 ## Question 2
 ```{r}
